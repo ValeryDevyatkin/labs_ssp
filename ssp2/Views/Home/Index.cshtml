@@ -1,31 +1,116 @@
-﻿@{
-    ViewBag.Title = "Home Page";
+﻿@using System.Web.UI.HtmlControls
+@using ssp2.Models
+@model ssp2.Controllers.WorkerContext
+@{
+    var workers = Model.Workers
+        .Join(Model.Specialities,
+        w => w.Speciality,
+        s => s.SpecialityId,
+        (w, s) => new
+        {
+            Id = w.Id,
+            Fio = w.Fio,
+            Age = w.Age,
+            Speciality = w.Speciality,
+            Payment = s.Payment,
+            Img = s.Img
+        });
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="http://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
+<!DOCTYPE html>
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
+<html>
+<head>
+    <title>ssp2</title>
+    <link href="/Content/Site.css" rel="stylesheet">
+</head>
+<body>
+<div>
+    <h3>Workers</h3>
+    <table>
+        <tr class="table-header">
+            <td class="invisible"></td>
+            <td class="invisible"></td>
+            <td>Fio</td>
+            <td>Age</td>
+            <td>Speciality</td>
+            <td>Payment</td>
+        </tr>
+        <tr>
+            @using (Html.BeginForm("Add", "Home", FormMethod.Post))
+            {
+                <tr>
+                    <td class="invisible"></td>
+                    <td class="invisible"></td>
+                    <td><input type="search" name="fio" /></td>
+                    <td><input type="number" value="0" min="0" max="100" name="age" /></td>
+                    <td>
+                        <select name="speciality">
+                            @foreach (var s in Model.Specialities)
+                            {
+                                <option value="@s.SpecialityId">@s.SpecialityId</option>
+                            }
+                        </select>
+                    </td>
+                    <td><input type="submit" value="Add" /></td>
+                </tr>
+            }
+        </tr>
+        @foreach (var w in workers.ToList())
+        {
+            <tr>
+                @using (Html.BeginForm("Update", "Home", new { idParam = w.Id }, FormMethod.Post))
+                {
+                    <td class="img-holder">
+                        <img src="/Content/images/@w.Img">
+                    </td>
+                    <td>
+                        <input type="submit" value="Update" class="small-input" />
+                        @Html.ActionLink("Delеte", "Delete", "Home", new { idParam = w.Id }, null)
+                    </td>
+                    <td><input type="search" name="fio", value="@w.Fio"/></td>
+                    <td><input type="number" name="age" min="0", max="100", value="@w.Age"/></td>
+                    <td>
+                        <select name="speciality">
+                            <option value="@w.Speciality" selected="selected">@w.Speciality</option>
+                            @foreach (var s in Model.Specialities
+                                .Where(x => x.SpecialityId != w.Speciality).ToList())
+                            {
+                                <option value="@s.SpecialityId">@s.SpecialityId</option>
+                            }
+                        </select>
+                    </td>
+                }
+                @using (Html.BeginForm("ChangePayment", "Home", new {spec = w.Speciality}, FormMethod.Post))
+                {
+                    <td>
+                        <input type="number" value="@w.Payment" max="10000" min="0" name="pay" class="small-input"/>
+                        <input type="submit" value="Update" class="small-input"/>
+                    </td>
+                }
+            </tr>
+            <tr>
+                
+                @using (Html.BeginForm("ChangeImage", "Home", new { spec = w.Speciality }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    <td class="file-input" colspan="3">
+                        <input type="file" class="small-input" name="upload" />
+                    </td>
+                    <td class="file-input" colspan="3">
+                        <input type="submit" value="Update" class="small-input" />
+                    </td>
+                }
+            </tr>
+        }
+        <tr class="table-header">
+            <td class="invisible"></td>
+            <td class="invisible"></td>
+            <td>Fio</td>
+            <td>Age</td>
+            <td>Speciality</td>
+            <td>Payment</td>
+        </tr>
+    </table>
 </div>
+</body>
+</html>
